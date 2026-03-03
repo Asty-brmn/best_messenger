@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 
-SQLALCHEMY_DATABASE_URL = "postgresql://user:password@localhost/messenger"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:12345@localhost/Messages"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
