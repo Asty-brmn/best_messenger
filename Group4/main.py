@@ -63,9 +63,25 @@ def create_chat(chat: ChatCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/chats", response_model=List[ChatResponse])
-def get_all_chats(db: Session = Depends(get_db)):
+def get_all_chats(
+    chat_name: str | None = Query(None, min_length=1), 
+    db: Session = Depends(get_db)
+):
     """Получить все чаты"""
-    return db.query(Chat).all()
+    if chat_name is None:
+        return db.query(Chat).all()
+    
+    chats = (
+        db.query(Chat)
+        .filter(Chat.name.ilike(f"%{chat_name}%"))
+        .all()
+    )
+
+    if not chats:
+        raise HTTPException(status_code=404, detail="Chat with this name not found")
+    
+    return chats
+
 
 
 @app.get("/chats/{chat_id}", response_model=ChatResponse)
