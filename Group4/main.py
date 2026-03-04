@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -121,9 +121,21 @@ def get_message(message_id: int, db: Session = Depends(get_db)):
 
 
 @app.get("/chats/{chat_id}/messages", response_model=List[MessageResponse])
-def get_chat_messages(chat_id: int, db: Session = Depends(get_db)):
+def get_chat_messages(
+    chat_id: int,  
+    limit: int = Query(2, ge=1, le=100), 
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db)
+):  
     """Получить все сообщения в конкретном чате"""
     chat = db.query(Chat).filter(Chat.id == chat_id).first()
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    return db.query(Message).filter(Message.chat_id == chat_id).all()
+    return (
+        db.query(Message)
+        .filter(Message.chat_id == chat_id)
+        .order_by(Message.created_at)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
