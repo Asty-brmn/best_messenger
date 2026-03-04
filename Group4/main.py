@@ -21,7 +21,10 @@ def root():
     return {"message": "Yra, pobeda!"}
 
 @app.post("/users", response_model=UserResponse)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
+def create_user(
+    user: UserCreate, 
+    db: Session = Depends(get_db)
+):
     """Создать нового пользователя"""
     db_user = User(username=user.username)
     db.add(db_user)
@@ -37,23 +40,41 @@ def get_all_users(db: Session = Depends(get_db)):
 
 
 @app.get("/users/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(
+    user_id: int, 
+    db: Session = Depends(get_db)
+):
     """Получить пользователя по ID"""
-    user = db.query(User).filter(User.id == user_id).first()
+    user = (
+        db.query(User)
+        .filter(User.id == user_id)
+        .first()
+    )
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
     return user
 
 
 @app.post("/chats", response_model=ChatResponse)
-def create_chat(chat: ChatCreate, db: Session = Depends(get_db)):
+def create_chat(
+    chat: ChatCreate, 
+    db: Session = Depends(get_db)
+):
     """Создать новый чат"""
     db_chat = Chat(name=chat.name)
     
     if chat.user_ids:
-        users = db.query(User).filter(User.id.in_(chat.user_ids)).all()
+        users = (
+            db.query(User)
+            .filter(User.id.in_(chat.user_ids))
+            .all()
+        )
+
         if len(users) != len(chat.user_ids):
             raise HTTPException(status_code=404, detail="Some users not found")
+        
         db_chat.users = users
     
     db.add(db_chat)
@@ -85,30 +106,49 @@ def get_all_chats(
 
 
 @app.get("/chats/{chat_id}", response_model=ChatResponse)
-def get_chat(chat_id: int, db: Session = Depends(get_db)):
+def get_chat(
+    chat_id: int, 
+    db: Session = Depends(get_db)
+):
     """Получить чат по ID"""
-    chat = db.query(Chat).filter(Chat.id == chat_id).first()
+    chat = (
+        db.query(Chat)
+        .filter(Chat.id == chat_id)
+        .first()
+    )
+
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+    
     return chat
 
 
 @app.post("/messages", response_model=MessageResponse)
-def create_message(message: MessageCreate, db: Session = Depends(get_db)):
+def create_message(
+    message: MessageCreate, 
+    db: Session = Depends(get_db)
+):
     """Создать новое сообщение"""
-    author = db.query(User).filter(User.id == message.author_id).first()
+    author = (
+        db.query(User)
+        .filter(User.id == message.author_id)
+        .first()
+    )
+
     if not author:
         raise HTTPException(status_code=404, detail="Author not found")
     
-    chat = db.query(Chat).filter(Chat.id == message.chat_id).first()
+    chat = (
+        db.query(Chat)
+        .filter(Chat.id == message.chat_id)
+        .first()
+    )
+
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     
     if author not in chat.users:
-        raise HTTPException(
-            status_code=403, 
-            detail="User is not a member of this chat"
-        )
+        raise HTTPException(status_code=403, detail="User is not a member of this chat")
     
     db_message = Message(
         text=message.text,
@@ -128,11 +168,20 @@ def get_all_messages(db: Session = Depends(get_db)):
 
 
 @app.get("/messages/{message_id}", response_model=MessageResponse)
-def get_message(message_id: int, db: Session = Depends(get_db)):
+def get_message(
+    message_id: int, 
+    db: Session = Depends(get_db)
+):
     """Получить сообщение по ID"""
-    message = db.query(Message).filter(Message.id == message_id).first()
+    message = (
+        db.query(Message)
+        .filter(Message.id == message_id)
+        .first()
+    )
+
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
+    
     return message
 
 
@@ -144,9 +193,15 @@ def get_chat_messages(
     db: Session = Depends(get_db)
 ):  
     """Получить все сообщения в конкретном чате"""
-    chat = db.query(Chat).filter(Chat.id == chat_id).first()
+    chat = (
+        db.query(Chat)
+        .filter(Chat.id == chat_id)
+        .first()
+    )
+
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
+    
     return (
         db.query(Message)
         .filter(Message.chat_id == chat_id)
