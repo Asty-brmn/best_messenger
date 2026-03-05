@@ -162,9 +162,25 @@ def create_message(
 
 
 @app.get("/messages", response_model=List[MessageResponse])
-def get_all_messages(db: Session = Depends(get_db)):
-    """Получить все сообщения"""
-    return db.query(Message).all()
+def get_all_messages(
+    msg_text: str | None = Query(None, min_length=1), 
+    db: Session = Depends(get_db)
+):
+    """Получить все сообщения""" 
+    if msg_text is None:
+        return db.query(Message).all()
+    
+    messages = (
+        db.query(Message)
+        .filter(Message.text.ilike(f"%{msg_text}%"))
+        .all()
+    )
+
+    if not messages:
+        raise HTTPException(status_code=404, detail="Message with this text not found")
+    
+    return messages
+
 
 
 @app.get("/messages/{message_id}", response_model=MessageResponse)
