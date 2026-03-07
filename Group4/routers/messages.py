@@ -53,14 +53,13 @@ def get_all_messages(
     db: Session = Depends(get_db)
 ):
     """Получить все сообщения""" 
-    if msg_text is None:
-        return db.query(Message).all()
+    db_query =  db.query(Message)
+
+    if msg_text:
+        db_query = db_query.filter(Message.text.ilike(f"%{msg_text}%"))
     
-    messages = (
-        db.query(Message)
-        .filter(Message.text.ilike(f"%{msg_text}%"))
-        .all()
-    )
+    messages = db_query.all()
+    
 
     if not messages:
         raise HTTPException(status_code=404, detail="Message with this text not found")

@@ -42,14 +42,11 @@ def get_all_chats(
     db: Session = Depends(get_db)
 ):
     """Получить все чаты"""
-    if chat_name is None:
-        return db.query(Chat).all()
-    
-    chats = (
-        db.query(Chat)
-        .filter(Chat.name.ilike(f"%{chat_name}%"))
-        .all()
-    )
+    db_query = db.query(Chat)
+    if chat_name:
+        db_query = db_query.filter(Chat.name.ilike(f"%{chat_name}%"))
+
+    chats = db_query.all()
 
     if not chats:
         raise HTTPException(status_code=404, detail="Chat with this name not found")
@@ -90,7 +87,7 @@ def get_chat_messages(
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
     
-    return (
+    messages = (
         db.query(Message)
         .filter(Message.chat_id == chat_id)
         .order_by(Message.created_at)
@@ -98,3 +95,5 @@ def get_chat_messages(
         .limit(limit)
         .all()
     )
+
+    return messages
