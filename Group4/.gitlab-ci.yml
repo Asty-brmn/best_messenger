@@ -1,0 +1,8 @@
+stages:
+  - test
+
+pre-commit:
+  stage: test
+  image: python:3.11
+  script:
+    - pre-commit run --all-files

@@ -50,4 +50,3 @@ class MessageResponse(MessageBase):
 
     class Config:
         from_attributes = True
-
