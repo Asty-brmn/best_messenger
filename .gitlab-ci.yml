@@ -1,0 +1,7 @@
+pre-commit-check:
+  stage: test
+  image: python:3.11
+  script:
+    - cd group4
+    - pip install pre-commit
+    - pre-commit run --all-files
