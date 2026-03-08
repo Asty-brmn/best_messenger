@@ -1,8 +1,15 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, Table, DateTime
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    Table,
+    DateTime,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
-from datetime import datetime
 
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:12345@localhost/Messages"
 
@@ -12,10 +19,10 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 user_chat_association = Table(
-    'user_chat',
+    "user_chat",
     Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
-    Column('chat_id', Integer, ForeignKey('chats.id'), primary_key=True)
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("chat_id", Integer, ForeignKey("chats.id"), primary_key=True),
 )
 
 
@@ -25,7 +32,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
 
-    chats = relationship("Chat", secondary=user_chat_association, back_populates="users")
+    chats = relationship(
+        "Chat", secondary=user_chat_association, back_populates="users"
+    )
     messages = relationship("Message", back_populates="author")
 
 
@@ -35,8 +44,12 @@ class Chat(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
 
-    users = relationship("User", secondary=user_chat_association, back_populates="chats")
-    messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
+    users = relationship(
+        "User", secondary=user_chat_association, back_populates="chats"
+    )
+    messages = relationship(
+        "Message", back_populates="chat", cascade="all, delete-orphan"
+    )
 
 
 class Message(Base):
@@ -64,4 +77,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
