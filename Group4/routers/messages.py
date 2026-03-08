@@ -37,14 +37,13 @@ def create_message(message: MessageCreate, db: Session = Depends(get_db)):
 def get_all_messages(
     msg_text: str | None = Query(None, min_length=1), db: Session = Depends(get_db)
 ):
-    """Получить все сообщения""" 
-    db_query =  db.query(Message)
+    """Получить все сообщения"""
+    db_query = db.query(Message)
 
     if msg_text:
         db_query = db_query.filter(Message.text.ilike(f"%{msg_text}%"))
-    
+
     messages = db_query.all()
-    
 
     if not messages:
         raise HTTPException(status_code=404, detail="Message with this text not found")
@@ -60,17 +59,11 @@ def get_message(message_id: int, db: Session = Depends(get_db)):
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
 
+
 @router.delete("/{message_id}")
-def delete_message(
-    message_id: int,
-    db: Session = Depends(get_db)
-):
+def delete_message(message_id: int, db: Session = Depends(get_db)):
     """Удалить сообщение по ID"""
-    message = (
-        db.query(Message)
-        .filter(Message.id == message_id)
-        .first()
-    )
+    message = db.query(Message).filter(Message.id == message_id).first()
 
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")

@@ -66,7 +66,7 @@ def get_chat_messages(
 
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    
+
     messages = (
         db.query(Message)
         .filter(Message.chat_id == chat_id)
@@ -78,29 +78,20 @@ def get_chat_messages(
 
     return messages
 
+
 @router.delete("/{chat_id}")
 def delete_chat(
-    chat_id: int,
-    user_id: int = Query(..., ge=1, le=100),
-    db: Session = Depends(get_db)
+    chat_id: int, user_id: int = Query(..., ge=1, le=100), db: Session = Depends(get_db)
 ):
     """Удалить чат или выйти из него"""
 
-    chat = (
-        db.query(Chat)
-        .filter(Chat.id == chat_id)
-        .first()
-    )
+    chat = db.query(Chat).filter(Chat.id == chat_id).first()
 
-    user = (
-        db.query(User)
-        .filter(User.id == user_id)
-        .first()
-    )
+    user = db.query(User).filter(User.id == user_id).first()
 
     if not chat:
         raise HTTPException(status_code=404, detail="Chat not found")
-    
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
