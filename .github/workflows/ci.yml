@@ -39,31 +39,31 @@ jobs:
       - name: Install dependencies
         run: pip install -r Group4/requirements.txt
       - name: Setup database
-        run: |
+        run:
           cd Group4
           python init_db.py || echo "DB init failed (maybe already initialized)"
       - name: Start application
-        run: |
+        run:
           echo "Checking PostgreSQL..."
-          pg_isready -h localhost -U postgres || echo "PostgreSQL not ready"
-          
+          pg_isready -h postgres -U postgres || echo "PostgreSQL not ready"
+
           for i in {1..30}; do
-            if pg_isready -h localhost -U postgres; then
+            if pg_isready -h postgres -U postgres; then
               echo "PostgreSQL is ready!"
               break
             fi
             sleep 1
           done
-          
+
           cd Group4
-          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
-          
+          export DATABASE_URL="postgresql://postgres:postgres@postgres:5432/test_db"
+
           echo "Testing database connection..."
           python -c "import os; import psycopg2; conn = psycopg2.connect(os.getenv('DATABASE_URL')); print('Database connection successful!')"
-          
+
           echo "Starting application..."
           uvicorn main:app --host 0.0.0.0 --port 8000 &
-          
+
           echo "Waiting for app to start..."
           for i in {1..30}; do
             if curl -s http://127.0.0.1:8000/; then
@@ -72,7 +72,7 @@ jobs:
             fi
             sleep 1
           done
-          
+
           if ! curl -s http://127.0.0.1:8000/; then
             echo "❌ App failed to start!"
             exit 1
