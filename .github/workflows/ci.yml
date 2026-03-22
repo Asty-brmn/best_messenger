@@ -86,4 +86,3 @@ jobs:
   #     - run: cd Group4 && uvicorn main:app --host 0.0.0.0 --port 8000 &
   #     - run: sleep 10
   #     - run: cd Group4 && pytest tests/ -v
-  
