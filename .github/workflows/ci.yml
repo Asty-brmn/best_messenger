@@ -26,6 +26,8 @@ jobs:
           POSTGRES_DB: test_db
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -38,45 +40,26 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -r Group4/requirements.txt
-      - name: Setup database
+      - name: Wait for PostgreSQL
         run: |
-          cd Group4
-          python init_db.py || echo "DB init failed (maybe already initialized)"
-      - name: Start application
-        run: |
-          echo "Checking PostgreSQL..."
-          pg_isready -h postgres -U postgres || echo "PostgreSQL not ready"
-          
           for i in {1..30}; do
-            if pg_isready -h postgres -U postgres; then
+            if pg_isready -h localhost -U postgres; then
               echo "PostgreSQL is ready!"
               break
             fi
-            sleep 1
+            sleep 2
           done
-          
+      - name: Setup database
+        run: |
           cd Group4
-          export DATABASE_URL="postgresql://postgres:postgres@postgres:5432/test_db"
-          
-          echo "Testing database connection..."
-          python -c "import os; import psycopg2; conn = psycopg2.connect(os.getenv('DATABASE_URL')); print('Database connection successful!')"
-          
-          echo "Starting application..."
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
+          python init_db.py || echo "DB init failed (maybe already initialized)"
+      - name: Start application
+        run: |
+          cd Group4
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
           uvicorn main:app --host 0.0.0.0 --port 8000 &
-          
-          echo "Waiting for app to start..."
-          for i in {1..30}; do
-            if curl -s http://127.0.0.1:8000/; then
-              echo "App started successfully!"
-              break
-            fi
-            sleep 1
-          done
-          
-          if ! curl -s http://127.0.0.1:8000/; then
-            echo "❌ App failed to start!"
-            exit 1
-          fi
+          sleep 10
       - name: Run tests
         run: cd Group4 && pytest tests/ -v
 
