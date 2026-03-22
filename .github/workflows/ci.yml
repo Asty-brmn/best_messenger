@@ -17,7 +17,7 @@ jobs:
       - run: pip install pre-commit
       - run: cd Group4 && pre-commit run --all-files
 
-  tests:
+tests:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -28,22 +28,80 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install -r Group4/requirements.txt
-      - run: |
+
+      - name: Install dependencies
+        run: pip install -r Group4/requirements.txt
+
+      - name: Setup database with test data
+        run: |
           cd Group4
           export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
-          python init_db.py || true
-      - run: |
+
+          python << EOF
+          from database import Base, engine
+          from sqlalchemy.orm import Session
+
+          # Импортируем модели
+          from database import User, Chat, user_chat_association
+
+          # Создаем таблицы
+          Base.metadata.create_all(bind=engine)
+
+          db = Session(engine)
+          try:
+              # Добавляем пользователей с нужными ID
+              users = [
+                  User(id=1, username='alice'),
+                  User(id=2, username='bob'),
+                  User(id=3, username='charlie'),
+                  User(id=4, username='diana'),
+              ]
+              for user in users:
+                  db.merge(user)
+
+              # Добавляем чаты с нужными ID
+              chats = [
+                  Chat(id=2, name='General'),
+                  Chat(id=3, name='Random'),
+              ]
+              for chat in chats:
+                  db.merge(chat)
+
+              db.commit()
+              print("✓ Test data created: users 1-4, chats 2-3")
+
+              # Проверяем, что данные созданы
+              print(f"Users count: {db.query(User).count()}")
+              print(f"Chats count: {db.query(Chat).count()}")
+
+          except Exception as e:
+              print(f"✗ Error: {e}")
+              db.rollback()
+              raise
+          finally:
+              db.close()
+          EOF
+
+      - name: Start application
+        run: |
           cd Group4
           export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
           uvicorn main:app --host 0.0.0.0 --port 8000 &
           sleep 10
-      - run: cd Group4 && pytest tests/ -v
+          curl -f http://127.0.0.1:8000/ || exit 1
+
+      - name: Run tests
+        run: cd Group4 && pytest tests/ -v
 
   # tests:
   #   runs-on: ubuntu-latest
