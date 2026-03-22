@@ -1,5 +1,3 @@
-
-
 class TestCreateChat:
     def test_create_chat_with_existing_users(self, chats_client):
         payload = {"name": "Postman chat", "user_ids": [1, 3, 4]}
