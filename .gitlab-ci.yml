@@ -5,16 +5,16 @@ stages:
 variables:
   DATABASE_URL: "sqlite:///test.db"
 
+# Проверить на ветке пуш. либо прописывать ветки каждый раз, иначе на других ветках при пуше будет срабатывать
 pre-commit:
   stage: lint
   image: python:3.11
   script:
     - cd Group4
     - pre-commit run --all-files
-#проверить на ветке пуш. либо прописывать ветки каждый раз, иначе на других ветках при пуше будет срабатывать
   only:
     - CI/CD.test_runner
-    - master/messages 
+    - master/messages
 
 tests:
   stage: test
