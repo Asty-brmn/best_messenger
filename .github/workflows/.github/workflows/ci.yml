@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ CI/CD.test_runner, master/messages ]
+  pull_request:
+    branches: [ master/messages ]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pre-commit
+      - run: cd Group4 && pre-commit run --all-files
+
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r Group4/requirements.txt
+      - run: cd Group4 && python init_db.py || true
+      - run: cd Group4 && uvicorn main:app --host 0.0.0.0 --port 8000 &
+      - run: sleep 10
+      - run: cd Group4 && pytest tests/ -v
