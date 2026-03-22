@@ -12,9 +12,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
 
-#SQLALCHEMY_DATABASE_URL = "postgresql://postgres:12345@localhost/Messages"
+# SQLALCHEMY_DATABASE_URL = "postgresql://postgres:12345@localhost/Messages"
 
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:12345@localhost/Messages")
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://postgres:12345@localhost/Messages"
+)
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
