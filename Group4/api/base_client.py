@@ -1,9 +1,9 @@
 # api/base_client.py
 import requests
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
+
 
 class BaseClient:
     def __init__(self):
