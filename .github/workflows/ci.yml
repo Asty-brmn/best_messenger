@@ -45,7 +45,7 @@ jobs:
       - name: Start application
         run: |
           cd Group4
-          export DATABASE_URL="postgresql://postgres:postgres@postgres:5432/test_db"
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
           uvicorn main:app --host 0.0.0.0 --port 8000 &
           echo "Waiting for app to start..."
           for i in {1..30}; do
