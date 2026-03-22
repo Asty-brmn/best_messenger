@@ -28,40 +28,22 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r Group4/requirements.txt
-      - name: Wait for PostgreSQL
-        run: |
-          for i in {1..30}; do
-            if pg_isready -h localhost -U postgres; then
-              echo "PostgreSQL is ready!"
-              break
-            fi
-            sleep 2
-          done
-      - name: Setup database
-        run: |
+      - run: pip install -r Group4/requirements.txt
+      - run: |
           cd Group4
           export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
-          python init_db.py || echo "DB init failed (maybe already initialized)"
-      - name: Start application
-        run: |
+          python init_db.py || true
+      - run: |
           cd Group4
           export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/test_db"
           uvicorn main:app --host 0.0.0.0 --port 8000 &
           sleep 10
-      - name: Run tests
-        run: cd Group4 && pytest tests/ -v
+      - run: cd Group4 && pytest tests/ -v
 
   # tests:
   #   runs-on: ubuntu-latest
